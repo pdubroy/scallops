@@ -2,6 +2,14 @@ import { ulid } from "jsr:@std/ulid";
 
 const kv = await Deno.openKv();
 
+interface StoryData {
+  id: string;
+  url?: string;
+  title?: string;
+  text?: string;
+  tags?: string;
+}
+
 // Helpers
 // -------
 
@@ -28,7 +36,10 @@ function dedent(text: string): string {
   return lines.map((l: string) => l.slice(minSpaces)).join("\n");
 }
 
-async function mapValuesAsync<T, V>(iter, fn) {
+async function mapValuesAsync<T, V>(
+  iter: Deno.KvListIterator<T>,
+  fn: (value: T) => V,
+): Promise<V[]> {
   const arr = [];
   for await (const x of iter) {
     arr.push(fn(x.value));
@@ -36,7 +47,7 @@ async function mapValuesAsync<T, V>(iter, fn) {
   return arr;
 }
 
-function story(data) {
+function story(data: StoryData) {
   const url = data.url || `/stories/${data.id}`;
   const title = data.title || "(no title)";
   return `<li><a href="${url}">${title}</a></li>`;
@@ -46,7 +57,10 @@ function story(data) {
 // --------
 
 export async function get_index(_req: Request): Promise<Response> {
-  const storyArr = kv.list({ prefix: ["stories"] }, { reverse: true });
+  const storyArr = kv.list<StoryData>(
+    { prefix: ["stories"] },
+    { reverse: true },
+  );
   const stories = await mapValuesAsync(storyArr, story);
   return new Response(
     dedent(`
@@ -104,12 +118,9 @@ export async function post_stories(req: Request): Promise<Response> {
   const formData = await req.formData();
   const id = ulid();
   await kv.set(["stories", id], { id, ...Object.fromEntries(formData) });
-  return new Response(
-    `Submitted! Thanks.`,
-    {
-      status: 200,
-    },
-  );
+  return new Response(`Submitted! Thanks.`, {
+    status: 200,
+  });
 }
 
 // Main
