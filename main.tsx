@@ -3,6 +3,7 @@ import { Hono } from "jsr:@hono/hono";
 
 import { ulid } from "jsr:@std/ulid";
 import { html } from "jsr:@hono/hono/html";
+import { css, Style } from "jsr:@hono/hono/css";
 
 const kv = await Deno.openKv();
 
@@ -41,7 +42,37 @@ function story(data: StoryData) {
 // Views
 // -----
 
-const Layout: FC = ({ children }) => {
+const Header: FC = () => {
+  const navStyle = css`
+    padding: 0 1rem;
+    background-color: var(--pico-primary-background);
+  `;
+  const logoStyle = css`
+    margin-bottom: 0 !important;
+  `;
+  return (
+    <nav class={navStyle}>
+      <ul>
+        <li>
+          <h1 class={logoStyle}>
+            <a class="contrast" href="/">
+              Scallops
+            </a>
+          </h1>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a class="contrast" href="/submit">
+            Submit
+          </a>
+        </li>
+      </ul>
+    </nav>
+  );
+};
+
+const Layout: FC = ({ includeHeader = true, fluid = false, children }) => {
   return (
     <>
       {html`<!DOCTYPE html>`}
@@ -55,9 +86,13 @@ const Layout: FC = ({ children }) => {
             href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
           />
           <title>Scallops</title>
+          <Style />
         </head>
         <body>
-          <main class="container">{children}</main>
+          {includeHeader && <Header />}
+          <main class={fluid ? "container-fluid" : "container"}>
+            {children}
+          </main>
         </body>
       </html>
     </>
@@ -76,8 +111,7 @@ app.get("/", async (c) => {
   );
   const stories = await mapValuesAsync(storyArr, story);
   return c.html(
-    <Layout>
-      <h1>Scallops</h1>
+    <Layout fluid>
       <ul>{stories}</ul>
     </Layout>
   );
@@ -85,25 +119,25 @@ app.get("/", async (c) => {
 
 app.get("/submit", (c) => {
   return c.html(
-    <Layout>
-      <h1>Submit</h1>
+    <Layout includeHeader={false}>
+      <h1>Add a Story</h1>
       <form action="/stories" method="post">
-        <label>URL:</label>
+        <label>URL</label>
         <br />
         <input type="url" name="url" />
         <br />
 
-        <label>Title:</label>
+        <label>Title</label>
         <br />
         <input type="text" name="title" />
         <br />
 
-        <label>Tags (comma-separated):</label>
+        <label>Tags (comma-separated)</label>
         <br />
         <input type="text" name="tags" />
         <br />
 
-        <label>Text:</label>
+        <label>Text</label>
         <br />
         <textarea name="text" rows={5}></textarea>
         <br />
