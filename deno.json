@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --allow-net --unstable-kv --watch main.tsx"
+    "dev": "deno run --allow-net --unstable-kv --allow-read=./public --watch main.tsx"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
