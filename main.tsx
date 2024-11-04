@@ -17,29 +17,6 @@ interface StoryData {
 // Helpers
 // -------
 
-function checkNotNull<T>(x: T | null): NonNullable<T> {
-  if (x == null) {
-    throw new Error(`Expected non-null value: ${x}`);
-  }
-  return x;
-}
-
-function checkNumber(x: unknown): number {
-  if (typeof x !== "number") {
-    throw new Error(`Expected number: ${x}`);
-  }
-  return x;
-}
-
-function dedent(text: string): string {
-  const lines = text.split("\n");
-  const minSpaces = lines
-    .filter((line) => line.trim().length > 0)
-    .map((line) => line.match(/^ */)?.[0]?.length ?? 0)
-    .reduce((min, curr) => Math.min(min, curr), Infinity);
-  return lines.map((l: string) => l.slice(minSpaces)).join("\n");
-}
-
 async function mapValuesAsync<T, V>(
   iter: Deno.KvListIterator<T>,
   fn: (value: T) => V
